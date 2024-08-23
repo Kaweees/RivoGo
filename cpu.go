@@ -6,86 +6,11 @@ import (
 	"os"
 )
 
-// An enum containing all the possible registers of the processor
-const (
-	REG_ZERO = iota // Always 0
-	REG_AT          // Assembler temporary
-	REG_V0          // Return value
-	REG_V1
-	REG_A0 // Function parameters
-	REG_A1
-	REG_A2
-	REG_A3
-	REG_T0 // Function temporary values
-	REG_T1
-	REG_T2
-	REG_T3
-	REG_T4
-	REG_T5
-	REG_T6
-	REG_T7
-	REG_S0 // Saved registers
-	REG_S1
-	REG_S2
-	REG_S3
-	REG_S4
-	REG_S5
-	REG_S6
-	REG_S7
-	REG_T8 // Function temporary values
-	REG_T9
-	REG_K0 // Reserved for interrupt handler
-	REG_K1
-	REG_GP    // Global pointer
-	REG_SP    // Stack pointer
-	REG_S8    // Saved registers
-	REG_RA    // Return address
-	REG_HI    // Multiplication result
-	REG_LO    // Division result
-	REG_PC    // Program counter
-	REG_EPC   // Exception program counter
-	REG_COUNT // Number of registers
-)
-
-// RISC-V Constants
-const XLEN uint8 = 32 // Width of a register in bits
-const BYTES_PER_WORD uint8 = 4
-const MEM_MAX_SIZE int = (1 << 32)
-const PC_START uint32 = 0x00400000
-
 // Represents the emulated RISC-V   processor
 type CPU struct {
 	registers [REG_COUNT]uint32    // Core registers, exposed publicly to make it easier to interface with
 	memory    [MEM_MAX_SIZE]uint32 // Memory bus interface
 }
-
-type OpCode uint8
-
-const (
-	ADD   OpCode = 0b100000
-	ADDU  OpCode = 0b100001
-	ADDI  OpCode = 0b001000
-	ADDIU OpCode = 0b001001
-	AND   OpCode = 0b100100
-	ANDI  OpCode = 0b001100
-	DIV   OpCode = 0b011010
-	DIVU  OpCode = 0b011011
-	MULT  OpCode = 0b011000
-	MULTU OpCode = 0b011001
-	NOR   OpCode = 0b100111
-	OR    OpCode = 0b100101
-	ORI   OpCode = 0b001101
-	SLL   OpCode = 0b000000
-	SLLV  OpCode = 0b000100
-	SRA   OpCode = 0b000011
-	SRAV  OpCode = 0b000111
-	SRL   OpCode = 0b000010
-	SRLV  OpCode = 0b000110
-	SUB   OpCode = 0b100010
-	SUBU  OpCode = 0b100011
-	XOR   OpCode = 0b100110
-	XORI  OpCode = 0b001110
-)
 
 // Constructor to initialize memory for the CPU.
 func NewCPU() (*CPU, error) {
@@ -122,71 +47,135 @@ func (cpu *CPU) LoadImage(image string) error {
 // Fetches the instruction at the current program counter
 func (cpu *CPU) Fetch() uint32 {
 	// Ignore overflow and wrap around
-	return cpu.memory[(int(cpu.registers[REG_PC]))%MEM_MAX_SIZE]
+	instruction := cpu.memory[(int(cpu.registers[REG_PC]))%MEM_MAX_SIZE]
+	cpu.registers[REG_PC] += BYTES_PER_WORD
+	return instruction
 }
 
-// Executes the instruction given by its opcode
+// Decodes and executes the instruction given by its opcode
 func (cpu *CPU) Execute(instruction uint32) error {
-	opcode := OpCode(instruction >> 26)
-	fmt.Println(opcode)
+	var opcode InstructionType
+	var funct3 uint8
+
+	// Extract the opcode amd funct3 from the instruction
+	opcode = InstructionType(instruction & 0x3F)
+	funct3 = uint8((instruction >> 12) & 0x3)
+	funct7 := uint8((instruction >> 25) & 0x3)
+
+	// Decode the instruction based on the opcode and funct3
 	switch opcode {
-	case ADD:
-		return cpu.Add(instruction)
-	case ADDU:
-		return nil
-	case ADDI:
-		return nil
-	case ADDIU:
-		return nil
-	case AND:
-		return nil
-	case ANDI:
-		return nil
-	case DIV:
-		return nil
-	case DIVU:
-		return nil
-	case MULT:
-		return nil
-	case MULTU:
-		return nil
-	case NOR:
-		return nil
-	case OR:
-		return nil
-	case ORI:
-		return nil
-	case SLL:
-		return nil
-	case SLLV:
-		return nil
-	case SRA:
-		return nil
-	case SRAV:
-		return nil
-	case SRL:
-		return nil
-	case SRLV:
-		return nil
-	case SUB:
-		return nil
-	case SUBU:
-		return nil
-	case XOR:
-		return nil
-	case XORI:
-		return nil
+	case R_TYPE:
+		return cpu.ExecuteRType(funct3, funct7, &RTypeInstruction{
+			rd:  uint8((instruction >> 7) & 0x1F),
+			rs1: uint8((instruction >> 15) & 0x1F),
+			rs2: uint8((instruction >> 20) & 0x1F),
+		})
+	case I_TYPE:
+		return fmt.Errorf("I-type instructions not implemented yet")
+	case S_TYPE:
+		return fmt.Errorf("S-type instructions not implemented yet")
+	case B_TYPE:
+		return fmt.Errorf("B-type instructions not implemented yet")
+	case U_TYPE:
+		return fmt.Errorf("U-type instructions not implemented yet")
+	case J_TYPE:
+		return fmt.Errorf("J-type instructions not implemented yet")
 	default:
-		return fmt.Errorf("unknown opcode: %v", opcode)
+		return fmt.Errorf("unknown instruction type: %v", opcode)
+	}
+}
+
+// Executes the corresponding R-type instruction based on the funct3 and funct7 fields
+func (cpu *CPU) ExecuteRType(funct3 uint8, funct7 uint8, instruction *RTypeInstruction) error {
+	if funct3 == 0x0 && funct7 == 0x00 {
+		return cpu.Add(instruction)
+	} else if funct3 == 0x0 && funct7 == 0x20 {
+		return cpu.Sub(instruction)
+	} else if funct3 == 0x4 && funct7 == 0x00 {
+		return cpu.Xor(instruction)
+	} else if funct3 == 0x6 && funct7 == 0x00 {
+		return cpu.Or(instruction)
+	} else if funct3 == 0x7 && funct7 == 0x00 {
+		return cpu.And(instruction)
+	} else if funct3 == 0x1 && funct7 == 0x00 {
+		return cpu.Sll(instruction)
+	} else if funct3 == 0x5 && funct7 == 0x00 {
+		return cpu.Srl(instruction)
+	} else if funct3 == 0x5 && funct7 == 0x20 {
+		return cpu.Sra(instruction)
+	} else if funct3 == 0x2 && funct7 == 0x00 {
+		return cpu.Slt(instruction)
+	} else if funct3 == 0x3 && funct7 == 0x00 {
+		return cpu.Sltu(instruction)
+	} else {
+		return fmt.Errorf("unknown R-type instruction: %v", instruction)
 	}
 }
 
 // Adds two registers and stores the result in a third register
-func (cpu *CPU) Add(instruction uint32) error {
-	rd := (instruction >> 11) & 0x1F
-	rs := (instruction >> 21) & 0x1F
-	rt := (instruction >> 16) & 0x1F
+func (cpu *CPU) Add(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] + cpu.registers[instruction.rs2]
+	return nil
+}
 
-	cpu.registers[rd] = cpu.registers[rs] + cpu.registers[rt]
+// Subtracts two registers and stores the result in a third register
+func (cpu *CPU) Sub(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] - cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Bitwise XORs two registers and stores the result in a third register
+func (cpu *CPU) Xor(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] ^ cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Bitwise ORs two registers and stores the result in a third register
+func (cpu *CPU) Or(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] | cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Bitwise ANDs two registers and stores the result in a third register
+func (cpu *CPU) And(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] & cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Shifts the bits in a register left by a certain amount and stores the result in a third register
+func (cpu *CPU) Sll(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] << cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Shifts the bits in a register right by a certain amount and stores the result in a third register
+func (cpu *CPU) Srl(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = cpu.registers[instruction.rs1] >> cpu.registers[instruction.rs2]
+	return nil
+}
+
+// Shifts the bits in a register right by a certain amount, filling the leftmost bits with the sign bit
+func (cpu *CPU) Sra(instruction *RTypeInstruction) error {
+	cpu.registers[instruction.rd] = uint32(int32(cpu.registers[instruction.rs1]) >> cpu.registers[instruction.rs2])
+	return nil
+}
+
+// Sets a register to 1 if the first register is less than the second, 0 otherwise
+func (cpu *CPU) Slt(instruction *RTypeInstruction) error {
+	if int32(cpu.registers[instruction.rs1]) < int32(cpu.registers[instruction.rs2]) {
+		cpu.registers[instruction.rd] = 1
+	} else {
+		cpu.registers[instruction.rd] = 0
+	}
+	return nil
+}
+
+// Sets a register to 1 if the first register is less than the second, 0 otherwise (unsigned)
+func (cpu *CPU) Sltu(instruction *RTypeInstruction) error {
+	if uint32(cpu.registers[instruction.rs1]) < uint32(cpu.registers[instruction.rs2]) {
+		cpu.registers[instruction.rd] = 1
+	} else {
+		cpu.registers[instruction.rd] = 0
+	}
 	return nil
 }
