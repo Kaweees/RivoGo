@@ -1,5 +1,11 @@
 package main
 
+import (
+	"encoding/binary"
+	"fmt"
+	"os"
+)
+
 // An enum containing all the possible registers of the processor
 const (
 	REG_ZERO = iota // Always 0
@@ -41,16 +47,16 @@ const (
 	REG_COUNT // Number of registers
 )
 
-// MIPS Constants
-const (
-	PC_START = 0x00400000
-	MEM_SIZE = 1 << 16
-)
+// RISC-V Constants
+const XLEN uint8 = 32 // Width of a register in bits
+const BYTES_PER_WORD uint8 = 4
+const MEM_MAX_SIZE int = (1 << 32)
+const PC_START uint32 = 0x00400000
 
-// Represents the emulated MIPS  processor
+// Represents the emulated RISC-V   processor
 type CPU struct {
-	registers [REG_COUNT]uint32 // Core registers, exposed publicly to make it easier to interface with
-	memory    [MEM_SIZE]uint32  // Memory bus interface
+	registers [REG_COUNT]uint32    // Core registers, exposed publicly to make it easier to interface with
+	memory    [MEM_MAX_SIZE]uint32 // Memory bus interface
 }
 
 type OpCode uint8
@@ -86,4 +92,34 @@ func NewCPU() (*CPU, error) {
 	cpu := &CPU{}
 	cpu.registers[REG_PC] = PC_START
 	return cpu, nil
+}
+
+// Loads a binary image into memory
+func (cpu *CPU) LoadImage(image string) error {
+	file, err := os.Open(image)
+	if err != nil {
+		// Log.Fatalf("Error opening file: %v", err)
+		return err
+	}
+
+	// Read the size of the binary image
+	var memSize uint32
+	err = binary.Read(file, binary.LittleEndian, &memSize)
+	if err != nil {
+		return fmt.Errorf("error reading binary image size: %v", err)
+	}
+
+	// Read the binary image into memory
+	const maxReadSize = MEM_MAX_SIZE - int(memSize)
+	// _, err = file.Read((*(*[MEM_MAX_SIZE]byte)(unsafe.Pointer(&cpu.memory[0])))[:])
+	defer file.Close()
+	return nil
+}
+
+// Decodes the instruction and returns the opcode
+
+// Fetches the instruction at the current program counter
+func (cpu *CPU) Fetch() uint32 {
+	// Guard against out of bounds memory access
+	return cpu.memory[(int(cpu.registers[REG_PC]))%MEM_MAX_SIZE]
 }

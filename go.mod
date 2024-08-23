@@ -1,4 +1,4 @@
-module github.com/kaweees/go-mips-vm
+module github.com/kaweees/go-riscv-vm
 
 go 1.22.5
 
