@@ -110,16 +110,83 @@ func (cpu *CPU) LoadImage(image string) error {
 	}
 
 	// Read the binary image into memory
-	const maxReadSize = MEM_MAX_SIZE - int(memSize)
-	// _, err = file.Read((*(*[MEM_MAX_SIZE]byte)(unsafe.Pointer(&cpu.memory[0])))[:])
+	maxReadSize := MEM_MAX_SIZE - int(memSize)
+	err = binary.Read(file, binary.LittleEndian, cpu.memory[:maxReadSize])
+	if err != nil {
+		return fmt.Errorf("error reading binary image: %v", err)
+	}
 	defer file.Close()
 	return nil
 }
 
-// Decodes the instruction and returns the opcode
-
 // Fetches the instruction at the current program counter
 func (cpu *CPU) Fetch() uint32 {
-	// Guard against out of bounds memory access
+	// Ignore overflow and wrap around
 	return cpu.memory[(int(cpu.registers[REG_PC]))%MEM_MAX_SIZE]
+}
+
+// Executes the instruction given by its opcode
+func (cpu *CPU) Execute(instruction uint32) error {
+	opcode := OpCode(instruction >> 26)
+	fmt.Println(opcode)
+	switch opcode {
+	case ADD:
+		return cpu.Add(instruction)
+	case ADDU:
+		return nil
+	case ADDI:
+		return nil
+	case ADDIU:
+		return nil
+	case AND:
+		return nil
+	case ANDI:
+		return nil
+	case DIV:
+		return nil
+	case DIVU:
+		return nil
+	case MULT:
+		return nil
+	case MULTU:
+		return nil
+	case NOR:
+		return nil
+	case OR:
+		return nil
+	case ORI:
+		return nil
+	case SLL:
+		return nil
+	case SLLV:
+		return nil
+	case SRA:
+		return nil
+	case SRAV:
+		return nil
+	case SRL:
+		return nil
+	case SRLV:
+		return nil
+	case SUB:
+		return nil
+	case SUBU:
+		return nil
+	case XOR:
+		return nil
+	case XORI:
+		return nil
+	default:
+		return fmt.Errorf("unknown opcode: %v", opcode)
+	}
+}
+
+// Adds two registers and stores the result in a third register
+func (cpu *CPU) Add(instruction uint32) error {
+	rd := (instruction >> 11) & 0x1F
+	rs := (instruction >> 21) & 0x1F
+	rt := (instruction >> 16) & 0x1F
+
+	cpu.registers[rd] = cpu.registers[rs] + cpu.registers[rt]
+	return nil
 }

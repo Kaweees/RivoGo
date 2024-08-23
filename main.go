@@ -29,16 +29,11 @@ func main() {
 		// Fetch the instruction
 		instruction := cpu.Fetch()
 		fmt.Println(instruction)
-		// Decode the instruction
-		// opcode, err := cpu.Decode(instruction)
-		// if err != nil {
-		// 	return
-		// }
 		// Execute the instruction
-		// err = cpu.Execute(opcode)
-		// if err != nil {
-		// 	return
-		// }
+		err = cpu.Execute(instruction)
+		if err != nil {
+			return
+		}
 	}
 
 }
