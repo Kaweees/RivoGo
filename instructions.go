@@ -41,13 +41,27 @@ type ITypeInstruction struct {
 }
 
 // Represents a S-type instruction
-type STypeInstruction struct{}
+type STypeInstruction struct {
+	imm uint16 // The immediate value
+	rs1 uint8  // The first source register
+	rs2 uint8  // The second source register
+}
 
 // Represents a B-type instruction
-type BTypeInstruction struct{}
+type BTypeInstruction struct {
+	imm uint16 // The immediate value
+	rs1 uint8  // The first source register
+	rs2 uint8  // The second source register
+}
 
 // Represents a U-type instruction
-type UTypeInstruction struct{}
+type UTypeInstruction struct {
+	imm uint16 // The immediate value
+	rd  uint8  // The destination register
+}
 
 // Represents a J-type instruction
-type JTypeInstruction struct{}
+type JTypeInstruction struct {
+	imm uint16 // The immediate value
+	rd  uint8  // The destination register
+}

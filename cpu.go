@@ -83,17 +83,29 @@ func (cpu *CPU) Execute(instruction uint32) error {
 			imm: uint16((instruction >> 20) & 0xFFF),
 		})
 	case I_TYPE_SYS:
-		return cpu.ExecuteSysType(funct3, funct7, &ITypeInstruction{
+		return cpu.ExecuteISysType(funct3, funct7, &ITypeInstruction{
 			rd:  uint8((instruction >> 7) & 0x3F),
 			rs1: uint8((instruction >> 15) & 0x1F),
 			imm: uint16((instruction >> 20) & 0xFFF),
 		})
 	case S_TYPE:
-		return fmt.Errorf("s-type instructions not implemented yet")
+		return cpu.ExecuteSType(funct3, &STypeInstruction{
+			imm: uint16(((instruction >> 25 & 0xEF) << 5) & ((instruction >> 7) & 0xF)),
+			rs1: uint8((instruction >> 15) & 0x1F),
+			rs2: uint8((instruction >> 20) & 0x1F),
+		})
 	case B_TYPE:
 		return fmt.Errorf("b-type instructions not implemented yet")
+		// return cpu.ExecuteBType(funct3, &BTypeInstruction{
+		// 	imm: uint16(((instruction >> 31 & 0x1) << 12) & ((instruction >> 25 & 0x3F) << 5) & ((instruction >> 8 & 0xF) << 1) & ((instruction >> 7 & 0x1) << 11)),
+		// 	rs1: uint8((instruction >> 15) & 0x1F),
+		// 	rs2: uint8((instruction >> 20) & 0x1F),
+		// })
 	case U_TYPE:
-		return fmt.Errorf("u-type instructions not implemented yet")
+		return cpu.ExecuteUType(funct3, funct7, &UTypeInstruction{
+			imm: uint16(instruction >> 12),
+			rd:  uint8((instruction >> 7) & 0x3F),
+		})
 	case J_TYPE:
 		return fmt.Errorf("j-type instructions not implemented yet")
 	default:
@@ -263,6 +275,26 @@ func (cpu *CPU) ExecuteILoadType(funct3 uint8, funct7 uint8, instruction *ITypeI
 }
 
 // Executes the corresponding I-type system instruction based on the funct3 field
-func (cpu *CPU) ExecuteSysType(funct3 uint8, funct7 uint8, instruction *ITypeInstruction) error {
+func (cpu *CPU) ExecuteISysType(funct3 uint8, funct7 uint8, instruction *ITypeInstruction) error {
+	return nil
+}
+
+// Executes the corresponding S-type instruction based on the funct3 field
+func (cpu *CPU) ExecuteSType(funct3 uint8, instruction *STypeInstruction) error {
+	return nil
+}
+
+// Executes the corresponding B-type instruction based on the funct3 field
+func (cpu *CPU) ExecuteBType(funct3 uint8, instruction *BTypeInstruction) error {
+	return nil
+}
+
+// Executes the corresponding U-type instruction based on the funct3 field
+func (cpu *CPU) ExecuteUType(funct3 uint8, funct7 uint8, instruction *UTypeInstruction) error {
+	return nil
+}
+
+// Executes the corresponding J-type instruction based on the funct3 field
+func (cpu *CPU) ExecuteJType(funct3 uint8, funct7 uint8, instruction *JTypeInstruction) error {
 	return nil
 }
