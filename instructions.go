@@ -5,12 +5,14 @@ type InstructionType uint8
 
 // An enum containing all the possible formats of an instruction
 const (
-	R_TYPE InstructionType = 0b0110011 // Register (R-format) instructions
-	I_TYPE InstructionType = 0b0010011 // Immediate (I-format) instructions
-	S_TYPE InstructionType = 0b0100011 // Store (S-format) instructions
-	B_TYPE InstructionType = 0b1100011 // Branch (B-format) instructions
-	U_TYPE InstructionType = 0b0110111 // Upper immediate (U-format) instructions
-	J_TYPE InstructionType = 0b1101111 // Jump (J-format) instructions
+	R_TYPE       InstructionType = 0b0110011 // Register (R-format) instructions
+	I_TYPE_ARITH InstructionType = 0b0010011 // Arithmetic Immediate (I-format) instructions
+	I_TYPE_LOAD  InstructionType = 0b0000011 // Load Immediate (I-format) instructions
+	I_TYPE_SYS   InstructionType = 0b1110011 // System Immediate (I-format) instructions
+	S_TYPE       InstructionType = 0b0100011 // Store (S-format) instructions
+	B_TYPE       InstructionType = 0b1100011 // Branch (B-format) instructions
+	U_TYPE       InstructionType = 0b0110111 // Upper immediate (U-format) instructions
+	J_TYPE       InstructionType = 0b1101111 // Jump (J-format) instructions
 )
 
 // Represents a MIPS assembly instruction
@@ -35,7 +37,7 @@ type RTypeInstruction struct {
 type ITypeInstruction struct {
 	rd  uint8  // The destination register
 	rs1 uint8  // The first source register
-	imm uint32 // The immediate value
+	imm uint16 // The immediate value
 }
 
 // Represents a S-type instruction
