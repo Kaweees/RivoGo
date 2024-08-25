@@ -1,13 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	var err error
 	var cli argsParsed
 
 	// Parse the arguments
-	// cli, _ = GetCliArgs()
+	cli, _ = GetCliArgs()
 
 	// Initialize the logger
 	initalizeLogger()
@@ -15,7 +17,7 @@ func main() {
 	var cpu *CPU
 
 	// Initialize the CPU
-	cpu, err = NewCPU(cli.MemoryStart, cli.MemoryLength)
+	cpu, err = NewCPU(uint32(cli.Start), uint32(cli.Length))
 	if err != nil {
 		return
 	}
@@ -35,5 +37,4 @@ func main() {
 			return
 		}
 	}
-
 }
