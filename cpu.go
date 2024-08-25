@@ -11,7 +11,7 @@ type CPU struct {
 	pc        uint32            // Program counter
 	memSize   uint32            // Size of the memory
 	registers [REG_COUNT]uint32 // Core registers, exposed publicly to make it easier to interface with
-	memory    []uint32          // Memory bus interface
+	memory    []uint8           // Memory bus interface
 }
 
 // Constructor to initialize memory for the CPU.
@@ -19,22 +19,49 @@ func NewCPU(memoryStart uint32, memoryLength uint32) (*CPU, error) {
 	cpu := &CPU{}
 	cpu.pc = memoryStart
 	cpu.memSize = memoryLength
-	cpu.memory = make([]uint32, memoryLength)
+	cpu.memory = make([]uint8, memoryLength)
 	cpu.registers[REG_SP] = memoryLength
 	return cpu, nil
 }
 
-func (cpu *CPU) DisplayRegisters() uint32 {
+// Displays the contents of the registers
+func (cpu *CPU) DisplayRegisters() {
 	for i := 0; i < REG_COUNT; {
 		fmt.Printf("x%02d: ", i)
 		for j := 0; j < 8; j++ {
 			fmt.Printf("%08x ", cpu.registers[i])
+			if j == 3 {
+				fmt.Print(" ")
+			}
 			i++
 		}
 		fmt.Println()
 	}
 	fmt.Printf(" pc: %08x\n", cpu.pc)
-	return 0
+}
+
+// Displays the contents of the memory
+func (cpu *CPU) DisplayMemory(addr uint32, count uint32) {
+	// Pading to align the memory address
+	if addr%16 != 0 {
+		fmt.Printf("%08x: ", addr)
+		for i := uint32(0); i < count; i++ {
+			fmt.Printf("%02x ", cpu.memory[addr+i])
+		}
+	}
+	for i := uint32(addr); i < addr+count; i++ {
+		if i%16 == 0 && i != 0 {
+			fmt.Println()
+		}
+		if i%16 == 0 {
+			fmt.Printf("0x%08x: ", i)
+		}
+		fmt.Printf("%02x ", cpu.memory[i])
+		if i%8 == 0 && i != 0 {
+			fmt.Print(" ")
+		}
+	}
+	fmt.Println()
 }
 
 // Loads a binary image into memory
@@ -62,11 +89,71 @@ func (cpu *CPU) LoadImage(image string) error {
 	return nil
 }
 
+// Read a byte from memory
+func (cpu *CPU) FetchByte(addr uint32) (byte, error) {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return 0, fmt.Errorf("invalid address: %d", addr)
+	}
+	return cpu.memory[addr], nil
+}
+
+// Write a byte to memory
+func (cpu *CPU) StoreByte(addr uint32, byte uint8) error {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return fmt.Errorf("invalid address: %d", addr)
+	}
+	cpu.memory[addr] = byte
+	return nil
+}
+
+// Read a halfword from memory
+func (cpu *CPU) FetchHalfWord(addr uint32) (uint16, error) {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return 0, fmt.Errorf("invalid address: %d", addr)
+	}
+	return binary.LittleEndian.Uint16([]byte(cpu.memory[addr : addr+2])), nil
+}
+
+// Write a halfword to memory
+func (cpu *CPU) StoreHalfWord(addr uint32, halfWord uint16) error {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return fmt.Errorf("invalid address: %d", addr)
+	}
+	binary.LittleEndian.PutUint16(cpu.memory[addr:addr+2], halfWord)
+	return nil
+}
+
+// Read a word from memory
+func (cpu *CPU) FetchWord(addr uint32) (uint32, error) {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return 0, fmt.Errorf("invalid address: %d", addr)
+	}
+	return binary.LittleEndian.Uint32([]byte(cpu.memory[addr : addr+4])), nil
+}
+
+// Writes a word to memory
+func (cpu *CPU) StoreWord(addr uint32, word uint32) error {
+	// Guard against invalid addresses
+	if addr >= cpu.memSize {
+		return fmt.Errorf("invalid address: %d", addr)
+	}
+	binary.LittleEndian.PutUint32(cpu.memory[addr:addr+4], word)
+	return nil
+}
+
 // Fetches the instruction at the current program counter
 func (cpu *CPU) Fetch() uint32 {
 	// Ignore overflow and wrap around
-	instruction := cpu.memory[(cpu.pc)%MEM_MAX_SIZE]
-	cpu.pc += 1
+	instruction, err := cpu.FetchWord(cpu.pc)
+	if err != nil {
+		Log.Fatalf("Error reading instruction at address %08x: %v", cpu.pc, err)
+	}
+	cpu.pc += BYTES_PER_WORD
 	return instruction
 }
 
