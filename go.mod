@@ -1,4 +1,4 @@
-module github.com/kaweees/go-riscv-vm
+module github.com/kaweees/RivoGo
 
 go 1.22.5
 

@@ -38,10 +38,12 @@ const (
 )
 
 // RISC-V Constants
-const XLEN uint8 = 32 // Width of a register in bits
-const BYTES_PER_WORD uint8 = 4
-const MEM_MAX_SIZE int = (1 << 32)
-const PC_START uint32 = 0x00400000
+const (
+	XLEN           uint8  = 32 // Width of a register in bits
+	BYTES_PER_WORD uint8  = 4
+	MEM_MAX_SIZE   uint32 = 0xFFFF_FFFF
+	PC_START       uint32 = 0x0000_0000
+)
 
 // Memory-mapped Registers
 // const (

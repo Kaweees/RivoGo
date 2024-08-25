@@ -1,4 +1,4 @@
-# go-riscv-vm
+# RivoGo
 
 ```sh
 ./go-riscv-vm --filename ./test/test1.bin

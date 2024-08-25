@@ -8,14 +8,19 @@ import (
 
 // Represents the emulated RISC-V   processor
 type CPU struct {
-	registers [REG_COUNT]uint32    // Core registers, exposed publicly to make it easier to interface with
-	memory    [MEM_MAX_SIZE]uint32 // Memory bus interface
+	pc        uint32            // Program counter
+	memSize   uint32            // Size of the memory
+	registers [REG_COUNT]uint32 // Core registers, exposed publicly to make it easier to interface with
+	memory    []uint32          // Memory bus interface
 }
 
 // Constructor to initialize memory for the CPU.
-func NewCPU() (*CPU, error) {
+func NewCPU(memoryStart uint32, memoryLength uint32) (*CPU, error) {
 	cpu := &CPU{}
-	cpu.registers[REG_PC] = PC_START
+	cpu.pc = memoryStart
+	cpu.memSize = memoryLength
+	cpu.memory = make([]uint32, memoryLength)
+	cpu.registers[REG_SP] = memoryLength
 	return cpu, nil
 }
 
@@ -28,14 +33,14 @@ func (cpu *CPU) LoadImage(image string) error {
 	}
 
 	// Read the size of the binary image
-	var memSize uint32
-	err = binary.Read(file, binary.LittleEndian, &memSize)
+	var binMemSize uint32
+	err = binary.Read(file, binary.LittleEndian, &binMemSize)
 	if err != nil {
 		return fmt.Errorf("error reading binary image size: %v", err)
 	}
 
 	// Read the binary image into memory
-	maxReadSize := MEM_MAX_SIZE - int(memSize)
+	maxReadSize := cpu.memSize - binMemSize
 	err = binary.Read(file, binary.LittleEndian, cpu.memory[:maxReadSize])
 	if err != nil {
 		return fmt.Errorf("error reading binary image: %v", err)
@@ -47,8 +52,8 @@ func (cpu *CPU) LoadImage(image string) error {
 // Fetches the instruction at the current program counter
 func (cpu *CPU) Fetch() uint32 {
 	// Ignore overflow and wrap around
-	instruction := cpu.memory[(int(cpu.registers[REG_PC]))%MEM_MAX_SIZE]
-	cpu.registers[REG_PC] += 1
+	instruction := cpu.memory[(cpu.pc)%MEM_MAX_SIZE]
+	cpu.pc += 1
 	return instruction
 }
 

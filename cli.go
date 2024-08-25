@@ -21,6 +21,10 @@ type args struct {
 	FileName string `arg:"required" help:"Image file to virtualize"`
 	// Logging config
 	Logging bool `arg:"-l,--logging" help:"Enable logging"`
+	// Starting address
+	MemoryStart uint32 `arg:"-m,--memory" help:"Program counter starting address"`
+	// Memory length
+	MemoryLength uint32 `arg:"-n,--length" help:"Memory length"`
 }
 
 // Returns a human-readable version string
@@ -37,6 +41,8 @@ func (args) Description() string {
 func GetCliArgs() (cli argsParsed, err error) {
 	rawCli := args{}
 	rawCli.Logging = false
+	rawCli.MemoryStart = PC_START
+	rawCli.MemoryLength = MEM_MAX_SIZE 
 
 	arg.MustParse(&rawCli)
 	cli.args = rawCli
