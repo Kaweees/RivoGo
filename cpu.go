@@ -24,6 +24,19 @@ func NewCPU(memoryStart uint32, memoryLength uint32) (*CPU, error) {
 	return cpu, nil
 }
 
+func (cpu *CPU) DisplayRegisters() uint32 {
+	for i := 0; i < REG_COUNT; {
+		fmt.Printf("x%02d: ", i)
+		for j := 0; j < 8; j++ {
+			fmt.Printf("%08x ", cpu.registers[i])
+			i++
+		}
+		fmt.Println()
+	}
+	fmt.Printf(" pc: %08x\n", cpu.pc)
+	return 0
+}
+
 // Loads a binary image into memory
 func (cpu *CPU) LoadImage(image string) error {
 	file, err := os.Open(image)

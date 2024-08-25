@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
 	var err error
 	var cli argsParsed
@@ -24,17 +20,16 @@ func main() {
 
 	// Load the image into memory
 	cpu.LoadImage(cli.FileName)
-
-	fmt.Println("CPU initialized")
-	var running = true
-	for running {
-		// Fetch the instruction
-		instruction := cpu.Fetch()
-		fmt.Println(instruction)
-		// Execute the instruction
-		err = cpu.Execute(instruction)
-		if err != nil {
-			return
-		}
-	}
+	cpu.DisplayRegisters()
+	// var running = true
+	// for running {
+	// 	// Fetch the instruction
+	// 	instruction := cpu.Fetch()
+	// 	fmt.Println(instruction)
+	// 	// Execute the instruction
+	// 	err = cpu.Execute(instruction)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
 }
