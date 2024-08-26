@@ -49,6 +49,7 @@ func (cpu *CPU) DisplayMemory(addr uint32, count uint32) {
 			fmt.Printf("%02x ", cpu.memory[addr+i])
 		}
 	}
+	num := 1
 	for i := uint32(addr); i < addr+count; i++ {
 		if i%16 == 0 && i != 0 {
 			fmt.Println()
@@ -57,9 +58,11 @@ func (cpu *CPU) DisplayMemory(addr uint32, count uint32) {
 			fmt.Printf("0x%08x: ", i)
 		}
 		fmt.Printf("%02x ", cpu.memory[i])
-		if i%8 == 0 && i != 0 {
+		if num%8 == 0 && i != 0 {
 			fmt.Print(" ")
+			num = 0
 		}
+		num++
 	}
 	fmt.Println()
 }

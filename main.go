@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func main() {
 	var err error
 	var cli argsParsed
@@ -22,13 +20,12 @@ func main() {
 
 	// Load the image into memory
 	cpu.LoadImage(cli.FileName)
-	// cpu.DisplayRegisters()
-	// cpu.DisplayMemory(cpu.pc, 20)
+	cpu.DisplayRegisters()
+	cpu.DisplayMemory(cpu.pc, 200)
 	var running = true
 	for running {
 		// Fetch the instruction
 		instruction := cpu.Fetch()
-		fmt.Println(instruction)
 		// Execute the instruction
 		err = cpu.Execute(instruction)
 		if err != nil {
