@@ -79,7 +79,7 @@ $(BINS): $(ELFS)
 	$(OBJDUMP) -D $(ELFS) > $(LSTS)
 
 # Rule to build the program from linked object files
-$(ELFS): $(OBJS)
+$(ELFS): $(OBJ_DIR)/%.o
 	@mkdir -p $(BUILD_DIR) # Create the build directory if it doesn't exist
 	$(LD) $(LDFLAGS) $(OBJS) -o $(ELFS) $(LDLIBS)
 
@@ -88,10 +88,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR) # Create the object directory if it doesn't exist
 	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
-# Rule to compile source files into assembly files 
-$(ASM_DIR)/%.s: $(SRC_DIR)/%.c
+# Rule to compile source files into object files 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
 	@mkdir -p $(OBJ_DIR) # Create the object directory if it doesn't exist
-	$(CC) $(CFLAGS) $(INCS) -S -c $< -o $@
+	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
 # Clean target: remove build artifacts and non-essential files
 clean:

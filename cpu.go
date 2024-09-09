@@ -215,7 +215,10 @@ func (cpu *CPU) Execute(instruction uint32) error {
 			rd:  uint8((instruction >> 7) & 0x3F),
 		})
 	case J_TYPE:
-		return fmt.Errorf("j-type instructions not implemented yet")
+		return cpu.ExecuteJType(funct3, funct7, &JTypeInstruction{
+			imm: uint16(instruction >> 12),
+			rd:  uint8((instruction >> 7) & 0x3F),
+		})
 	default:
 		return fmt.Errorf("unknown instruction type: %v", opcode)
 	}
@@ -406,3 +409,4 @@ func (cpu *CPU) ExecuteUType(funct3 uint8, funct7 uint8, instruction *UTypeInstr
 func (cpu *CPU) ExecuteJType(funct3 uint8, funct7 uint8, instruction *JTypeInstruction) error {
 	return nil
 }
+
